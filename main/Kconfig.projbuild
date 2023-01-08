@@ -1,0 +1,159 @@
+menu "Example config"
+
+    menu "WiFi"
+
+        choice EXAMPLE_PROV_TRANSPORT
+            bool "Provisioning Transport"
+            default EXAMPLE_PROV_TRANSPORT_SOFTAP
+            help
+                Wi-Fi provisioning component offers both, SoftAP and BLE transports. Choose any one.
+
+            config EXAMPLE_PROV_TRANSPORT_SOFTAP
+                bool "Soft AP"
+        endchoice
+
+        choice EXAMPLE_PROV_SECURITY_VERSION
+            bool "Protocomm security version"
+            default EXAMPLE_PROV_SECURITY_VERSION_1
+            help
+                Wi-Fi provisioning component offers 3 security versions (0, 1, 2).
+                This example offers only security version 0 or 1.
+
+            config EXAMPLE_PROV_SECURITY_VERSION_1
+                bool "Security version 1"
+                select ESP_PROTOCOMM_SUPPORT_SECURITY_VERSION_1
+
+        endchoice
+
+        config EXAMPLE_PROV_TRANSPORT
+            int
+            default 2 if EXAMPLE_PROV_TRANSPORT_SOFTAP
+
+        config EXAMPLE_RESET_PROVISIONED
+            bool
+            default n
+            prompt "Reset provisioned status of the device"
+            help
+                This erases the NVS to reset provisioned status of the device on every reboot.
+                Provisioned status is determined by the Wi-Fi STA configuration, saved on the NVS.
+
+        config EXAMPLE_RESET_PROV_MGR_ON_FAILURE
+            bool
+            default y
+            prompt "Reset provisioned credentials and state machine after session failure"
+            help
+                Enable reseting provisioned credentials and state machine after session failure.
+                This will restart the provisioning service after retries are exhausted.
+
+        config EXAMPLE_PROV_MGR_MAX_RETRY_CNT
+            int
+            default 5
+            prompt "Max retries before reseting provisioning state machine"
+            depends on EXAMPLE_RESET_PROV_MGR_ON_FAILURE
+            help
+                Set the Maximum retry to avoid reconnecting to an inexistent AP or if credentials
+                are misconfigured. Provisioned credentials are erased and internal state machine
+                is reset after this threshold is reached.
+
+        config EXAMPLE_PROV_SHOW_QR
+            bool "Show provisioning QR code"
+            default y
+            help
+                Show the QR code for provisioning.
+
+        config ESP_MAXIMUM_RETRY
+            int "Maximum retry"
+            default 5
+            help
+                Set the Maximum retry to avoid station reconnecting to the AP
+                unlimited when the AP is really inexistent.
+    endmenu
+
+    menu "Time sync"
+
+        config TIME_ZONE_STRING
+            string "Time zone"
+            default "UTC"
+            help
+                Posix time zone string. Wireguard needs time synchronization.
+                Find time zones strings here: https://github.com/nayarsystems/posix_tz_db/blob/master/zones.csv
+
+        config TIME_SYNC_SERVER
+            string "Time sync NTP server"
+            default "pool.ntp.org"
+
+    endmenu
+
+    menu "Wireguard"
+
+        menu "Interface"
+
+            config WG_PRIVATE_KEY
+                string "Wireguard Private Key"
+                default ""
+                help
+                    Private key of the WireGuard device.
+
+            config WG_LOCAL_IP_ADDRESS
+                string "Wireguard interface IP address"
+                default ""
+                help
+                    Local IP address of the WireGuard device.
+
+            config WG_LOCAL_IP_NETMASK
+                string "Wireguard interface netmask"
+                default "255.255.255.0"
+                help
+                    Netmask of the local network the WireGuard device belongs to.
+
+            config WG_LOCAL_PORT
+                int "Wireguard local port"
+                default 51820
+                help
+                    Local port to listen.
+
+        endmenu
+
+        menu "Peer"
+
+            config WG_PEER_PUBLIC_KEY
+                string "Wireguard peer public key"
+                default ""
+                help
+                    Public key of the remote peer.
+
+            config WG_PRESHARED_KEY
+                string "Wireguard pre-shared key"
+                default ""
+                help
+                    Public key of the remote peer.
+
+            config WG_PEER_ADDRESS
+                string "Wireguard peer address"
+                default "demo.wireguard.com"
+                help
+                    Address of the remote peer.
+
+            config WG_PEER_PORT
+                int "Wireguard peer port"
+                default 51820
+                help
+                    Port number of the remote peer.
+
+            config WG_PERSISTENT_KEEP_ALIVE
+                int "Persistent keep-alive interval"
+                default 25
+                help
+                    A seconds interval, between 1 and 65535 inclusive, of how often to
+                    send an authenticated empty packet to the peer for the purpose of
+                    keeping a stateful firewall or NAT mapping valid persistently
+            
+        endmenu
+    endmenu
+
+    config EXAMPLE_PING_ADDRESS
+    string "ICMP echo ping target IP address"
+    default ""
+    help
+        Target IP address to send ICMP echo requests via Wireguard tunnel.
+endmenu
