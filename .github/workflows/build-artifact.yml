@@ -1,0 +1,82 @@
+name: "ESP-IDF build *.bin -> artifacts (manual)"
+
+on:
+  workflow_dispatch:
+    inputs:
+      path:
+        description: "Relative path under $GITHUB_WORKSPACE to place the repository"
+        default: ""
+        required: false
+      esp_idf_version:
+        description: "Tag of ESP-IDF docker image to use"
+        default: "release-v4.4"
+        required: true
+      target:
+        description: "ESP32 variant to build for"
+        default: "esp32"
+        required: true
+      command:
+        description: "Command to run inside the docker container (default: builds the project)"
+        default: "idf.py build"
+        required: true
+
+  repository_dispatch:
+    inputs:
+      path:
+        default: ""
+        required: false
+      esp_idf_version:
+        default: "release-v4.4"
+        required: false
+      target:
+        default: "esp32"
+        required: false
+      command:
+        default: "idf.py build"
+        required: false
+      sdkconfig_defaults:
+        default: ""
+        required: false
+
+jobs:
+  build-and-upload-binaries:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+        with:
+          submodules: 'recursive'
+
+      - run: mkdir -p build
+
+      - name: Use sdkconfig.defaults
+        if: github.event_name == 'repository_dispatch' && github.event.inputs.sdkconfig_defaults != ''
+          run: echo ${{ inputs.sdkconfig_defaults }} >> sdkconfig.defaults
+
+      - name: esp-idf build
+        uses: espressif/esp-idf-ci-action@v1
+        with:
+          esp_idf_version: ${{ inputs.esp_idf_version }}
+          target: ${{ inputs.target }}
+          path: ${{ inputs.path }}
+          command: ${{ inputs.command }}
+
+      - name: copy bootloader binary
+        run: find build/bootloader -maxdepth 1 -name '*.bin' -exec cp "{}" bootloader.bin \;
+      
+      - name: copy partition table binary
+        run: find build/partition_table -maxdepth 1 -name '*.bin' -exec cp "{}" partition_table.bin \;
+
+      - name: copy firmware binary
+        run: find build -maxdepth 1 -name '*.bin' -exec cp "{}" firmware.bin \;
+
+      - name: create artifact name
+        run: echo "artifact_name=${{ inputs.target }}-binaries" >> $GITHUB_ENV
+
+      - uses: actions/upload-artifact@v3
+        with:
+          name: "${{ env.artifact_name }}"
+          path: |
+            bootloader.bin
+            partition_table.bin
+            firmware.bin

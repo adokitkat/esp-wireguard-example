@@ -1,0 +1,141 @@
+name: "ESP-IDF build *.bin -> artifacts (push)"
+
+on:
+  push:
+    branches:
+      - master
+    paths-ignore:
+      - '.github/workflows/build-artifact.yml'
+
+jobs:
+  esp32-build-and-upload-binaries:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+        with:
+          submodules: 'recursive'
+
+      - run: mkdir -p build
+
+      - name: esp-idf build
+        uses: espressif/esp-idf-ci-action@v1
+        with:
+          esp_idf_version: release-v4.4
+          target: esp32
+
+      - name: copy bootloader binary
+        run: find build/bootloader -maxdepth 1 -name '*.bin' -exec cp "{}" bootloader.bin \;
+      
+      - name: copy partition table binary
+        run: find build/partition_table -maxdepth 1 -name '*.bin' -exec cp "{}" partition_table.bin \;
+
+      - name: copy firmware binary
+        run: find build -maxdepth 1 -name '*.bin' -exec cp "{}" firmware.bin \;
+
+      - uses: actions/upload-artifact@v3
+        with:
+          name: esp32-binaries
+          path: |
+            bootloader.bin
+            partition_table.bin
+            firmware.bin
+
+  esp32s2-build-and-upload-binaries:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+        with:
+          submodules: 'recursive'
+
+      - run: mkdir -p build
+
+      - name: esp-idf build
+        uses: espressif/esp-idf-ci-action@v1
+        with:
+          esp_idf_version: release-v4.4
+          target: esp32s2
+
+      - name: copy bootloader binary
+        run: find build/bootloader -maxdepth 1 -name '*.bin' -exec cp "{}" bootloader.bin \;
+      
+      - name: copy partition table binary
+        run: find build/partition_table -maxdepth 1 -name '*.bin' -exec cp "{}" partition_table.bin \;
+
+      - name: copy firmware binary
+        run: find build -maxdepth 1 -name '*.bin' -exec cp "{}" firmware.bin \;
+
+      - uses: actions/upload-artifact@v3
+        with:
+          name: esp32s2-binaries
+          path: |
+            bootloader.bin
+            partition_table.bin
+            firmware.bin
+
+  esp32s3-build-and-upload-binaries:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+        with:
+          submodules: 'recursive'
+
+      - run: mkdir -p build
+
+      - name: esp-idf build
+        uses: espressif/esp-idf-ci-action@v1
+        with:
+          esp_idf_version: release-v4.4
+          target: esp32s3
+
+      - name: copy bootloader binary
+        run: find build/bootloader -maxdepth 1 -name '*.bin' -exec cp "{}" bootloader.bin \;
+      
+      - name: copy partition table binary
+        run: find build/partition_table -maxdepth 1 -name '*.bin' -exec cp "{}" partition_table.bin \;
+
+      - name: copy firmware binary
+        run: find build -maxdepth 1 -name '*.bin' -exec cp "{}" firmware.bin \;
+
+      - uses: actions/upload-artifact@v3
+        with:
+          name: esp32s3-binaries
+          path: |
+            bootloader.bin
+            partition_table.bin
+            firmware.bin
+
+  esp32c3-build-and-upload-binaries:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+        with:
+          submodules: 'recursive'
+
+      - run: mkdir -p build
+
+      - name: esp-idf build
+        uses: espressif/esp-idf-ci-action@v1
+        with:
+          esp_idf_version: release-v4.4
+          target: esp32c3
+
+      - name: copy bootloader binary
+        run: find build/bootloader -maxdepth 1 -name '*.bin' -exec cp "{}" bootloader.bin \;
+      
+      - name: copy partition table binary
+        run: find build/partition_table -maxdepth 1 -name '*.bin' -exec cp "{}" partition_table.bin \;
+
+      - name: copy firmware binary
+        run: find build -maxdepth 1 -name '*.bin' -exec cp "{}" firmware.bin \;
+
+      - uses: actions/upload-artifact@v3
+        with:
+          name: esp32c3-binaries
+          path: |
+            bootloader.bin
+            partition_table.bin
+            firmware.bin
