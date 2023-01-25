@@ -19,11 +19,14 @@ on:
         description: "Command to run inside the docker container (default: builds the project)"
         default: "idf.py build"
         required: true
+      sdkconfig_defaults:
+        default: ""
+        required: false
 
   repository_dispatch:
     inputs:
       path:
-        default: ""
+        default: "."
         required: false
       esp_idf_version:
         default: "release-v4.4"
@@ -47,13 +50,14 @@ jobs:
         with:
           submodules: 'recursive'
 
-      - run: mkdir -p build
-
       - name: Use sdkconfig.defaults
-        if: github.event_name == 'repository_dispatch' && github.event.inputs.sdkconfig_defaults != ''
-          run: echo ${{ inputs.sdkconfig_defaults }} >> sdkconfig.defaults
+        if: github.event_name == 'workflow_dispatch' && github.event.inputs.sdkconfig_defaults != ''
+        run: echo "${{ inputs.sdkconfig_defaults }}" >> sdkconfig.defaults
 
-      - name: esp-idf build
+      - name : Cat sdkconfig.defaults
+        run: cat sdkconfig.defaults
+
+      - name: ESP-IDF build
         uses: espressif/esp-idf-ci-action@v1
         with:
           esp_idf_version: ${{ inputs.esp_idf_version }}
@@ -61,19 +65,20 @@ jobs:
           path: ${{ inputs.path }}
           command: ${{ inputs.command }}
 
-      - name: copy bootloader binary
+      - name: Copy bootloader binary
         run: find build/bootloader -maxdepth 1 -name '*.bin' -exec cp "{}" bootloader.bin \;
       
-      - name: copy partition table binary
+      - name: Copy partition table binary
         run: find build/partition_table -maxdepth 1 -name '*.bin' -exec cp "{}" partition_table.bin \;
 
-      - name: copy firmware binary
+      - name: Copy firmware binary
         run: find build -maxdepth 1 -name '*.bin' -exec cp "{}" firmware.bin \;
 
-      - name: create artifact name
+      - name: Create artifact name
         run: echo "artifact_name=${{ inputs.target }}-binaries" >> $GITHUB_ENV
 
-      - uses: actions/upload-artifact@v3
+      - name: Upload binaries as artifacts
+        uses: actions/upload-artifact@v3
         with:
           name: "${{ env.artifact_name }}"
           path: |
