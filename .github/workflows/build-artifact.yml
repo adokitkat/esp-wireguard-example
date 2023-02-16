@@ -20,24 +20,7 @@ on:
         default: "idf.py build"
         required: true
       sdkconfig_defaults:
-        default: ""
-        required: false
-
-  repository_dispatch:
-    inputs:
-      path:
-        default: "."
-        required: false
-      esp_idf_version:
-        default: "release-v4.4"
-        required: false
-      target:
-        default: "esp32"
-        required: false
-      command:
-        default: "idf.py build"
-        required: false
-      sdkconfig_defaults:
+        description: "Sdkconfig default settings"
         default: ""
         required: false
 
@@ -53,9 +36,6 @@ jobs:
       - name: Use sdkconfig.defaults
         if: github.event_name == 'workflow_dispatch' && github.event.inputs.sdkconfig_defaults != ''
         run: echo "${{ inputs.sdkconfig_defaults }}" >> sdkconfig.defaults
-
-      - name : Cat sdkconfig.defaults
-        run: cat sdkconfig.defaults
 
       - name: ESP-IDF build
         uses: espressif/esp-idf-ci-action@v1
