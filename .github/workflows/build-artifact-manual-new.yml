@@ -1,0 +1,55 @@
+name: "ESP-IDF Build Artifact (manual trigger)"
+description: "This action builds ESP-IDF firmware and uploads it as build artifact."
+
+on:
+  workflow_dispatch:
+    inputs:
+      path:
+        description: "Relative path under $GITHUB_WORKSPACE to place the repository"
+        default: ""
+        required: false
+      esp_idf_version:
+        description: "Version of ESP-IDF docker image to use (latest, release-v5.5, etc. - see https://hub.docker.com/r/espressif/idf/tags)"
+        default: "latest"
+        required: false
+      target:
+        description: "ESP32 variant to build for (esp32, esp32s2, esp32s3, etc.)"
+        default: "esp32"
+        required: false
+
+jobs:
+  build-and-upload-binaries:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v6.0.1
+        with:
+          submodules: 'recursive'
+
+      - name: ESP-IDF build
+        uses: espressif/esp-idf-ci-action@v1.2.0
+        with:
+          esp_idf_version: ${{ inputs.esp_idf_version }}
+          target: ${{ inputs.target }}
+          path: ${{ inputs.path }}
+          command: |
+              idf.py build
+              cd build
+              mkdir -p merged
+              esptool.py merge_bin -o merged/fw_merged.bin @flash_args
+              cd ..
+
+      - name: Upload the merged binary as an artifact
+        uses: actions/upload-artifact@v6.0.0
+        with:
+          name: "${{ inputs.target }} - merged binary"
+          path: build/merged/fw_merged.bin 
+
+      - name: Upload other binaries as artifacts
+        uses: actions/upload-artifact@v6.0.0
+        with:
+          name: "${{ inputs.target }} - all binaries separately + elf file"
+          path: |
+            build/*.bin
+            build/**/*.bin
+            build/*.elf
