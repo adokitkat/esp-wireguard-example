@@ -7,6 +7,8 @@ on:
       paths-ignore:
         - '.github/workflows/build-artifact.yml'
         - '.github/workflows/build-artifact-on-push.yml'
+        - '.github/workflows/build-release-on-push.yml'
+        - '.github/workflows/build-artifact-manual-new.yml.yml'
 
 jobs:
   build-and-upload-binaries:

@@ -34,8 +34,9 @@ jobs:
           path: ${{ inputs.path }}
           command: |
               idf.py build
+              if [ $? -ne 0 ]; then exit 1; fi
+              mkdir -p build/merged
               cd build
-              mkdir -p merged
               esptool.py merge_bin -o merged/fw_merged.bin @flash_args
               cd ..
 
@@ -45,11 +46,12 @@ jobs:
           name: "${{ inputs.target }} - merged binary"
           path: build/merged/fw_merged.bin 
 
-      - name: Upload other binaries as artifacts
+      - name: Upload binaries as artifacts
         uses: actions/upload-artifact@v6.0.0
         with:
           name: "${{ inputs.target }} - all binaries separately + elf file"
           path: |
+            !build/**/CMakeFiles/**
             build/*.bin
             build/**/*.bin
             build/*.elf
