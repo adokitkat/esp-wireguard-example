@@ -37,7 +37,7 @@ jobs:
               if [ $? -ne 0 ]; then exit 1; fi
               mkdir -p build/merged
               cd build
-              esptool.py merge_bin -o merged/fw_merged.bin @flash_args
+              esptool.py --chip ${{ inputs.target }} merge_bin -o merged/fw_merged.bin @flash_args
               cd ..
 
       - name: Upload the merged binary as an artifact
@@ -51,7 +51,7 @@ jobs:
         with:
           name: "${{ inputs.target }} - all binaries separately + elf file"
           path: |
-            !build/**/CMakeFiles/**
             build/*.bin
             build/**/*.bin
             build/*.elf
+            !**/CMake*.bin
